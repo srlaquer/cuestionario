@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario de Hardware y Redes</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #800000; /* color vinotinto */
+        color: #fff;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
+    .container {
+        width: 90%;
+        max-width: 700px;
+        background: rgba(0,0,0,0.7);
+        padding: 20px;
+        margin-top: 30px;
+        border-radius: 10px;
+    }
+    h1, h2 {
+        text-align: center;
+    }
+    button {
+        background: #fff;
+        color: #800000;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+    button:hover {
+        background: #f1f1f1;
+    }
+    .question {
+        margin-bottom: 20px;
+    }
+    .options {
+        list-style: none;
+        padding: 0;
+    }
+    .options li {
+        margin: 10px 0;
+    }
+    input[type="radio"] {
+        margin-right: 10px;
+    }
+    @media(max-width: 500px){
+        .container {
+            padding: 15px;
+        }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Cuestionario de Hardware y Redes</h1>
+    <div id="start-screen">
+        <label for="name">Ingresa tu nombre:</label>
+        <input type="text" id="name" placeholder="Nombre">
+        <button id="startBtn">Iniciar Cuestionario</button>
+    </div>
+
+    <div id="quiz-screen" style="display:none;">
+        <h2 id="student-name"></h2>
+        <div id="question-container"></div>
+        <button id="nextBtn">Siguiente</button>
+    </div>
+
+    <div id="result-screen" style="display:none;">
+        <h2>Resultados</h2>
+        <p id="correct"></p>
+        <p id="incorrect"></p>
+    </div>
+</div>
+
+<script>
+const questionBank = [
+    {
+        question: "¿Cuál es la función principal de la CPU?",
+        options: ["Almacenar datos", "Procesar información", "Transmitir datos", "Proteger la red"],
+        answer: "Procesar información"
+    },
+    {
+        question: "¿Qué tipo de memoria se pierde al apagar la computadora?",
+        options: ["ROM", "RAM", "SSD", "HDD"],
+        answer: "RAM"
+    },
+    {
+        question: "¿Cuál es el dispositivo que conecta redes diferentes?",
+        options: ["Switch", "Router", "Hub", "Modem"],
+        answer: "Router"
+    },
+    {
+        question: "¿Qué significa LAN?",
+        options: ["Long Area Network", "Local Area Network", "Light Area Network", "Large Access Network"],
+        answer: "Local Area Network"
+    },
+    {
+        question: "¿Cuál de estos es un dispositivo de salida?",
+        options: ["Teclado", "Monitor", "Mouse", "Micrófono"],
+        answer: "Monitor"
+    },
+    {
+        question: "¿Qué tipo de cable es común en redes Ethernet?",
+        options: ["HDMI", "USB", "UTP", "Coaxial"],
+        answer: "UTP"
+    },
+    {
+        question: "¿Qué componente almacena permanentemente los datos?",
+        options: ["RAM", "ROM", "Cache", "CPU"],
+        answer: "ROM"
+    },
+    {
+        question: "¿Qué significa IP en redes?",
+        options: ["Internet Protocol", "Internal Process", "Interface Port", "Input Point"],
+        answer: "Internet Protocol"
+    },
+    {
+        question: "¿Qué hace un switch en una red?",
+        options: ["Conectar redes diferentes", "Dirigir paquetes entre dispositivos en la misma red", "Almacenar datos", "Proteger la red"],
+        answer: "Dirigir paquetes entre dispositivos en la misma red"
+    },
+    {
+        question: "¿Cuál es la velocidad promedio de un USB 3.0?",
+        options: ["5 Gbps", "480 Mbps", "10 Gbps", "1 Gbps"],
+        answer: "5 Gbps"
+    }
+];
+
+let studentName = "";
+let currentQuestion = 0;
+let score = 0;
+let incorrectAnswers = [];
+
+document.getElementById("startBtn").addEventListener("click", () => {
+    const nameInput = document.getElementById("name").value.trim();
+    if(nameInput === "") {
+        alert("Por favor ingresa tu nombre");
+        return;
+    }
+    studentName = nameInput;
+    document.getElementById("student-name").textContent = `Estudiante: ${studentName}`;
+    document.getElementById("start-screen").style.display = "none";
+    document.getElementById("quiz-screen").style.display = "block";
+    showQuestion();
+});
+
+function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+}
+
+const questions = shuffle([...questionBank]).slice(0,10);
+
+function showQuestion() {
+    const q = questions[currentQuestion];
+    const container = document.getElementById("question-container");
+    container.innerHTML = `
+        <div class="question">${currentQuestion + 1}. ${q.question}</div>
+        <ul class="options">
+            ${q.options.map(opt => `<li><label><input type="radio" name="option" value="${opt}"> ${opt}</label></li>`).join('')}
+        </ul>
+    `;
+    if(currentQuestion === questions.length - 1){
+        document.getElementById("nextBtn").textContent = "Terminar";
+    }
+}
+
+document.getElementById("nextBtn").addEventListener("click", () => {
+    const selected = document.querySelector('input[name="option"]:checked');
+    if(!selected){
+        alert("Por favor selecciona una opción");
+        return;
+    }
+
+    if(selected.value === questions[currentQuestion].answer){
+        score++;
+    } else {
+        incorrectAnswers.push({
+            question: questions[currentQuestion].question,
+            yourAnswer: selected.value,
+            correctAnswer: questions[currentQuestion].answer
+        });
+    }
+
+    currentQuestion++;
+    if(currentQuestion < questions.length){
+        showQuestion();
+    } else {
+        showResults();
+    }
+});
+
+function showResults() {
+    document.getElementById("quiz-screen").style.display = "none";
+    document.getElementById("result-screen").style.display = "block";
+    document.getElementById("correct").textContent = `Respuestas correctas: ${score}`;
+    if(incorrectAnswers.length > 0){
+        document.getElementById("incorrect").innerHTML = `Respuestas incorrectas:<br>${incorrectAnswers.map(i => `<strong>${i.question}</strong><br>Tu respuesta: ${i.yourAnswer}<br>Respuesta correcta: ${i.correctAnswer}<br>`).join("<br>")}`;
+    } else {
+        document.getElementById("incorrect").textContent = "¡Todas tus respuestas son correctas!";
+    }
+}
+</script>
+</body>
+</html>
